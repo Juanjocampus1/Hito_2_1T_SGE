@@ -1,7 +1,8 @@
 import tkinter as tk
-from Ui import App
+from Templates import Ui
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = App(root)
+    root.geometry("1920x1080")
+    app = Ui.App(root)
     root.mainloop()
