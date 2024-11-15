@@ -1,12 +1,16 @@
 import tkinter as tk
+from tkinter import Menu
 from tkinter import ttk
 from Repository import EncuestaDAO, filters
-
+import pandas as pd
 
 class App:
     def __init__(self, root):
         self.root = root
         self.root.title("Encuestas de Consumo de Alcohol")
+
+        self.menu_bar = Menu(root)
+        root.config(menu=self.menu_bar)
 
         # Apply a theme
         style = ttk.Style()
@@ -112,6 +116,18 @@ class App:
         self.sort_button = ttk.Button(filter_controls_frame, text="Recargar", command=self.reload_records)
         self.sort_button.pack(side=tk.LEFT, padx=5, pady=5)
 
+        # Create "Archivo" menu
+        self.archivo_menu = Menu(self.menu_bar, tearoff=0)
+        self.menu_bar.add_cascade(label="Archivo", menu=self.archivo_menu)
+        self.archivo_menu.add_command(label="Descargar DB en Excel", command=self.download_db_to_excel)
+        self.archivo_menu.add_separator()
+        for field in self.fields:
+            self.archivo_menu.add_command(label=f"Descargar {field} en Excel", command=lambda f=field: self.download_column_to_excel(f))
+
+        # Create "Edit" menu
+        self.edit_menu = Menu(self.menu_bar, tearoff=0)
+        self.menu_bar.add_cascade(label="Edit", menu=self.edit_menu)
+
         # Load data on startup
         self.read_records()
         self.read_filter_records()
@@ -174,8 +190,47 @@ class App:
             self.filter_tree.insert("", tk.END, values=record)
 
     def sort_records(self):
-        # Implement sort logic here
-        pass
+        sort_column = self.sort_combobox.get()
+        if not sort_column:
+            return
+
+        # Obtener todos los registros
+        records = EncuestaDAO.Database().read_records()
+
+        # Ordenar los registros por la columna seleccionada
+        sorted_records = sorted(records, key=lambda x: x[self.fields.index(sort_column)])
+
+        # Limpiar la tabla de filtros
+        for row in self.filter_tree.get_children():
+            self.filter_tree.delete(row)
+
+        # Reorganizar los encabezados de las columnas
+        new_columns = ["idEncuesta", sort_column] + [col for col in self.fields if
+                                                    col not in ["idEncuesta", sort_column]]
+        self.filter_tree["columns"] = new_columns
+
+        for col in new_columns:
+            self.filter_tree.heading(col, text=col)
+            self.filter_tree.column(col, width=100)
+
+        # Insertar los registros ordenados en la tabla de filtros
+        for record in sorted_records:
+            reordered_record = (record[0], record[self.fields.index(sort_column)]) + tuple(
+                value for i, value in enumerate(record) if i != 0 and i != self.fields.index(sort_column)
+            )
+            self.filter_tree.insert("", tk.END, values=reordered_record)
+
+    def download_db_to_excel(self):
+        records = EncuestaDAO.Database().read_records()
+        df = pd.DataFrame(records, columns=self.fields)
+        df.to_excel("database.xlsx", index=False)
+        print("Database downloaded to database.xlsx")
+
+    def download_column_to_excel(self, column):
+        records = EncuestaDAO.Database().read_records()
+        df = pd.DataFrame(records, columns=self.fields)
+        df[[column]].to_excel(f"{column}.xlsx", index=False)
+        print(f"Column {column} downloaded to {column}.xlsx")
 
     def reload_records(self):
         self.read_records()
