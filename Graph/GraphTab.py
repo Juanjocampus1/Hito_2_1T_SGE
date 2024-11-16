@@ -1,3 +1,4 @@
+# GraphTab.py
 import tkinter as tk
 from tkinter import ttk
 from matplotlib.figure import Figure
@@ -20,7 +21,6 @@ class GraphTab:
         self.canvas.draw()
 
     def fetch_and_process_data(self):
-
         db = Database()
         data = db.fetch_statistics()
         db.close()
@@ -39,9 +39,27 @@ class GraphTab:
             "median_age": np.median(ages),
             "std_dev_age": np.std(ages),
             "gender_distribution": np.unique(data_np[:, 1], return_counts=True),
-            "average_drinks_per_week": np.mean(data_np[:, 2:].astype(float), axis=0)
+            "average_drinks_per_week": np.mean(data_np[:, 2:].astype(float), axis=0),
+            "average_consumption_by_age_group": self.calculate_average_consumption_by_age_group(data_np),
+            "alcohol_consumption": np.sum(data_np[:, 2:].astype(float), axis=1),
+            "health_problems": np.sum(data_np[:, 7:].astype(float), axis=1)
         }
         return statistics
+
+    def calculate_average_consumption_by_age_group(self, data):
+        age_groups = [(0, 18), (19, 25), (26, 35), (36, 50), (51, 65), (66, 100)]
+        age_group_labels = ["0-18", "19-25", "26-35", "36-50", "51-65", "66-100"]
+        average_consumption = []
+
+        for group in age_groups:
+            group_data = data[(data[:, 0].astype(float) >= group[0]) & (data[:, 0].astype(float) <= group[1])]
+            if group_data.size > 0:
+                avg_consumption = np.mean(group_data[:, 2:].astype(float), axis=0)
+                average_consumption.append(np.mean(avg_consumption))
+            else:
+                average_consumption.append(0)
+
+        return age_group_labels, average_consumption
 
     def plot_age_statistics(self):
         self.clear_graph()
@@ -75,4 +93,25 @@ class GraphTab:
         ax = self.figure.add_subplot(111)
         ax.bar(labels, statistics["average_drinks_per_week"])
         ax.set_title("Average Drinks per Week")
+        self.canvas.draw()
+
+    def plot_average_consumption_by_age_group(self):
+        self.clear_graph()
+        statistics = self.fetch_and_process_data()
+        labels, values = statistics["average_consumption_by_age_group"]
+        ax = self.figure.add_subplot(111)
+        ax.bar(labels, values)
+        ax.set_title("Average Consumption by Age Group")
+        ax.set_xlabel("Age Group")
+        ax.set_ylabel("Average Consumption")
+        self.canvas.draw()
+
+    def plot_correlation(self):
+        self.clear_graph()
+        statistics = self.fetch_and_process_data()
+        ax = self.figure.add_subplot(111)
+        ax.scatter(statistics["alcohol_consumption"], statistics["health_problems"])
+        ax.set_title("Correlation between Alcohol Consumption and Health Problems")
+        ax.set_xlabel("Total Alcohol Consumption")
+        ax.set_ylabel("Total Health Problems")
         self.canvas.draw()

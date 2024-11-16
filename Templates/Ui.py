@@ -47,6 +47,12 @@ class App:
         average_drinks_button = ttk.Button(graph_button_frame, text="Average Drinks per Week", command=self.graph_tab.plot_average_drinks_per_week)
         average_drinks_button.pack(side=tk.LEFT, padx=5, pady=5)
 
+        average_consumption_by_age_group_button = ttk.Button(graph_button_frame, text="Average Consumption by Age Group", command=self.graph_tab.plot_average_consumption_by_age_group)
+        average_consumption_by_age_group_button.pack(side=tk.LEFT, padx=5, pady=5)
+
+        correlation_button = ttk.Button(graph_button_frame, text="Correlation", command=self.graph_tab.plot_correlation)
+        correlation_button.pack(side=tk.LEFT, padx=5, pady=5)
+
         # Table in the main tab
         self.tree = ttk.Treeview(self.main_frame, columns=("idEncuesta", "edad", "Sexo", "BebidasSemana", "CervezasSemana", "BebidasFinSemana", "BebidasDestiladasSemana", "VinosSemana", "PerdidasControl", "DiversionDependenciaAlcohol", "ProblemasDigestivos", "TensionAlta", "DolorCabeza"), show='headings')
         self.tree.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=10, pady=10)
