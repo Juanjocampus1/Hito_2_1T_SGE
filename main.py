@@ -3,6 +3,6 @@ from Templates import Ui
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.geometry("1920x1080")
+    root.state("zoomed")
     app = Ui.App(root)
     root.mainloop()

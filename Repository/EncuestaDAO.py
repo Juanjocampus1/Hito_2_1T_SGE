@@ -6,7 +6,7 @@ class Database:
         self.cursor = self.conn.cursor()
 
     def create_record(self, data):
-        query = """ 
+        query = """ pull
         INSERT INTO ENCUESTA (edad, Sexo, BebidasSemana, CervezasSemana, BebidasFinSemana, BebidasDestiladasSemana, VinosSemana, PerdidasControl, DiversionDependenciaAlcohol, ProblemasDigestivos, TensionAlta, DolorCabeza)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
@@ -30,6 +30,13 @@ class Database:
         query = "DELETE FROM ENCUESTA WHERE idEncuesta=%s"
         self.cursor.execute(query, (idEncuesta,))
         self.conn.commit()
+
+    # Repository/EncuestaDAO.py
+    def fetch_statistics(self):
+        self.cursor.execute(
+            "SELECT edad, Sexo, BebidasSemana, CervezasSemana, BebidasFinSemana, BebidasDestiladasSemana, VinosSemana FROM ENCUESTA")
+        results = self.cursor.fetchall()
+        return results
 
     def close(self):
         self.cursor.close()
